@@ -1,4 +1,6 @@
 
+![head](image.png)
+
 ## 一、概述
 
 使用Python的OpenCV，pyplot，numpy实现的停车场车位使用情况分析，包括车牌定位，车牌字符分割，车牌字符识别，停车场车位编号识别。
@@ -20,30 +22,17 @@ origin_image = cv2.imread('./image/car.jpg')
 image = origin_image.copy()
 ```
 
-2. 对图像进行灰度化处理；
+![origin](output/1.jpg_origin.jpg)
 
-```python
-# 图像去噪灰度处理
-def gray_guss(image):
-    image = cv2.GaussianBlur(image, (3, 3), 0)
-    gray_image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-    return gray_image
-
-# 图像去噪灰度处理
-gray_image = gray_guss(image)
-# x方向上的边缘检测（增强边缘信息）
-Sobel_x = cv2.Sobel(gray_image, cv2.CV_16S, 1, 0)
-absX = cv2.convertScaleAbs(Sobel_x)
-image = absX
-```
-
-3. 图像去噪灰度处理；
+2. 图像去噪灰度处理；
 
 ```py
 gray_image = gray_guss(image)
 ```
+![gray_guss](output/1.jpg_gray_guss.jpg)
 
-4. x方向上的边缘检测（增强边缘信息）；
+
+3. x方向上的边缘检测（增强边缘信息）；
 
 ```py
 Sobel_x = cv2.Sobel(gray_image, cv2.CV_16S, 1, 0)
@@ -51,20 +40,26 @@ absX = cv2.convertScaleAbs(Sobel_x)
 image = absX
 ```
 
-5. 将图像二值化；
+![Sobel](output/1.jpg_Sobel_x.jpg)
+
+4. 将图像二值化；
 
 ```py
 ret, image = cv2.threshold(image, 0, 255, cv2.THRESH_OTSU)
 ```
 
-6. 进行闭运算操作，获得小连通域；
+![threshold](output/1.jpg_threshold.jpg)
+
+5. 进行闭运算操作，获得小连通域；
 
 ```py
 kernelX = cv2.getStructuringElement(cv2.MORPH_RECT, (30, 10))
 image = cv2.morphologyEx(image, cv2.MORPH_CLOSE, kernelX,iterations = 1)
 ```
 
-1. 进行腐蚀（erode）和膨胀（dilate）；
+![morphologyEx](output/1.jpg_morphologyEx.jpg)
+
+6. 进行腐蚀（erode）和膨胀（dilate）；
 
 ```py
 # 腐蚀（erode）和膨胀（dilate）
@@ -79,14 +74,15 @@ image = cv2.dilate(image, kernelY)
 # 中值滤波（去噪）
 image = cv2.medianBlur(image, 21)
 ```
+![medianBlur](output/1.jpg_medianBlur.jpg)
 
-8. 使用findContours获取车牌和标号的轮廓；
+7. 使用findContours获取车牌和标号的轮廓；
 
 ```py
 contours, hierarchy = cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 ```
 
-9. 根据轮廓的面积进行筛选，找到可能属于车牌和标号的轮廓；
+8. 根据轮廓的面积进行筛选，找到可能属于车牌和标号的轮廓；
 
 ```py
 for j, item in enumerate(contours):
@@ -109,6 +105,9 @@ for j, item in enumerate(contours):
         plt_writeRGB(cut_image.copy(), img_name+str(j)+"_plate.jpg")
 ```
 
+![plate](output/1.jpg9_car_plate.jpg)
+![number1](output/1.jpg1_plate.jpg)
+![number2](output/1.jpg0_plate.jpg)
 
 ### 2. 停车场编号、车牌字符分割
 
@@ -118,18 +117,22 @@ for j, item in enumerate(contours):
 gray_image = gray_guss(image)
 ```
 
+![threshold_gray](output/1.jpg_threshold_gray1363.jpg)
+
 2. 对停车场编号、车牌字符进行二值化处理；
 
 ```py
 ret, image = cv2.threshold(gray_image, 0, 255, cv2.THRESH_OTSU)
 ```
 
-1. 膨胀操作，为分割做准备
+3. 膨胀操作，为分割做准备
 
 ```py
 kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
 image = cv2.dilate(image, kernel)
 ```
+
+![dilate](output/1.jpg_threshold_erode_gray1363.jpg)
 
 4. 使用findContours函数找到图像中的轮廓；
 
@@ -156,7 +159,7 @@ contours, hierarchy = cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPRO
     words = sorted(words,key=lambda s:s[0],reverse=False)
 ```
 
-1. 对轮廓进行筛选，找到可能属于车牌和停车场编号的字符轮廓；
+5. 对轮廓进行筛选，找到可能属于车牌和停车场编号的字符轮廓；
 
 ```py
 
@@ -173,6 +176,8 @@ for word in words:
         splite_image = image[word[1]:word[1] + word[3], word[0]:word[0] + word[2]]
         word_images.append(splite_image)
 ```
+
+![dilate_split](output/1.jpg_plate_gray_dilate_split1363.jpg)
 
 ### 3. 匹配车牌和停车场编号
 
@@ -366,11 +371,18 @@ for number in numbers:
 
 ## 四、实验结果
 
-findContours函数的效果并不好，对于车牌的定位并不准确，对于车牌字符的分割也不准确，导致车牌字符识别的准确率很低。并且停车场编号也不能很好地识别分割，以致于不能很好地匹配车牌和停车场编号。不过对于车牌定位和字符分割，可以使用深度学习的方法进行训练，效果会更好。
+![outcome](1702889105680.png)
+
+比较好地识别出车牌和停车场编号，但是对于车牌字符的识别效果不是很好，有时候会识别错误或者无法识别出停车场编号或车牌号，对于车牌字符的识别还有待改进。
 
 ## 五、总结
 
+通过这个实验，我加深了对数字图像处理的理解，了解了基本的图像处理方法，使用了形态学操作，轮廓检测，模板匹配等方法，对于图像的处理有了更深的理解。我也学习了使用OpenCV，pyplot，numpy等库进行图像处理，学习了使用Python进行图像处理的方法。
+
 ## 六、参考文献
+
 [OpenCV文档](https://www.woshicver.com/)
+
 [OpenCV-Python Tutorials](https://docs.opencv.org/master/d6/d00/tutorial_py_root.html)
 
+[车牌识别参考](https://blog.csdn.net/qq_40784418/article/details/105586644?spm=1001.2014.3001.5506)

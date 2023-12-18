@@ -43,15 +43,19 @@ def operate_one_img(img_name):
     origin_image = cv2.imread(img_name)
     # 复制一张图片，在复制图上进行图像操作，保留原图
     image = origin_image.copy()
+    plt_writeRGB(image, img_name+"_origin.jpg")
     # 图像去噪灰度处理
     gray_image = gray_guss(image)
+    plt_write(gray_image, img_name+"_gray_guss.jpg")
     # x方向上的边缘检测（增强边缘信息）
     Sobel_x = cv2.Sobel(gray_image, cv2.CV_16S, 1, 0)
     absX = cv2.convertScaleAbs(Sobel_x)
     image = absX
+    plt_write(image, img_name+"_Sobel_x.jpg")
 
     # 图像阈值化操作——获得二值化图
     ret, image = cv2.threshold(image, 0, 255, cv2.THRESH_OTSU)
+    plt_write(image, img_name+"_threshold.jpg")
     # 显示灰度图像
     # plt_show(image)
     # 形态学（从图像中提取对表达和描绘区域形状有意义的图像分量）——闭操作
@@ -59,6 +63,7 @@ def operate_one_img(img_name):
     image = cv2.morphologyEx(image, cv2.MORPH_CLOSE, kernelX,iterations = 1)
     # 显示灰度图像
     # plt_show(image)
+    plt_write(image, img_name+"_morphologyEx.jpg")
 
     # 腐蚀（erode）和膨胀（dilate）
     kernelX = cv2.getStructuringElement(cv2.MORPH_RECT, (50, 1))
@@ -73,6 +78,8 @@ def operate_one_img(img_name):
     image = cv2.medianBlur(image, 21)
     # 显示灰度图像
     # plt_show(image)
+    
+    plt_write(image, img_name+"_medianBlur.jpg")
     # 获得轮廓
     contours, hierarchy = cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -111,6 +118,7 @@ def match_one(image, name, ix, iy):
     #车牌字符分割
     # 图像去噪灰度处理
     gray_image = gray_guss(image)
+    plt_write(gray_image, name+"_gray_guss"+str(ix)+".jpg")
     # 图像阈值化操作——获得二值化图   
     ret, image = cv2.threshold(gray_image, 0, 255, cv2.THRESH_OTSU)
     # plt_show(image)
@@ -170,7 +178,7 @@ def match_one(image, name, ix, iy):
         plt.imshow(word_images[i],cmap='gray')
         plt.axis('off')
     
-    plt.savefig(name+"_plate_gray_dilate_split"+str(ix)+".jpg")
+    plt.savefig("output\\"+name.split("\\")[-1]+"_plate_gray_dilate_split"+str(ix)+".jpg")
     # plt.show()
     word_images_ = word_images.copy()
     # 调用函数获得结果
@@ -339,9 +347,11 @@ numbers = []
 dismp = {}
 nummp = {}
 
+
 for img in imgs:
     operate_one_img(img)
     print(f"在文件{img}中")
+    
     for number in numbers:
 
         distance = 10000000.0
@@ -375,8 +385,9 @@ for img in imgs:
 
     dismp.clear()
     nummp.clear()
-
     
+
+
     
     
     
